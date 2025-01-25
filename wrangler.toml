@@ -1,0 +1,10 @@
+name = "dify-discord-bot"
+main = "src/index.ts"
+compatibility_date = "2024-01-25"
+
+[vars]
+# 環境変数はCloudflareのダッシュボードで設定
+# DISCORD_TOKEN = ""
+# DISCORD_PUBLIC_KEY = ""
+# DIFY_API_KEY = ""
+# DIFY_API_ENDPOINT = ""
