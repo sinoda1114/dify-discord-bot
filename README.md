@@ -1,5 +1,6 @@
 # Dify Discord Bot
 Dify APIを使用したDiscord botです。このbotは、DiscordのスラッシュコマンドでDify APIと対話することができます。
+バックエンドはCloudflare Workersです。
 
 ## 機能
 - Discordのスラッシュコマンドに応答
@@ -11,6 +12,7 @@ Dify APIを使用したDiscord botです。このbotは、Discordのスラッシ
 - Node.js (v16以上)
 - npm
 - Cloudflareアカウント
+- Cloudflare Workers
 - Discordボットトークン
 - Dify APIキー
 
@@ -33,6 +35,9 @@ cd dify-discord-bot
 ```bash
 npm install
 ```
+
+### Difyの設定
+Difyでボットを作成し、APIキーを取得
 
 ### Discord Botの設定
 1. Discord Developer Portalでアプリケーションを作成
