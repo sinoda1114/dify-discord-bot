@@ -1,4 +1,8 @@
-import { InteractionResponseType, InteractionType, verifyKey } from 'discord-interactions';
+import {
+  InteractionResponseType,
+  InteractionType,
+  verifyKey,
+} from "discord-interactions";
 
 interface Env {
   DISCORD_TOKEN: string;
@@ -60,30 +64,41 @@ interface DiscordInteraction {
 }
 
 class DifyAPIError extends Error {
-  constructor(public status: number, message: string) {
+  constructor(
+    public status: number,
+    message: string,
+  ) {
     super(message);
-    this.name = 'DifyAPIError';
+    this.name = "DifyAPIError";
   }
 }
 
 const DIFY_TIMEOUT_MS = 30000;
-const MAX_MESSAGE_LENGTH = 1900;  // Discordの制限を考慮
+const MAX_MESSAGE_LENGTH = 1900; // Discordの制限を考慮
 
 const ERROR_MESSAGES = {
   THINKING: "考え中...",
   FETCH_FAILED: "申し訳ありません。応答の取得に失敗しました。",
-  GENERAL_ERROR: (message: string) => `エラーが発生しました: ${message}`
+  GENERAL_ERROR: (message: string) => `エラーが発生しました: ${message}`,
 } as const;
 
-async function sendFollowupMessage(applicationId: string, token: string, content: string, env: Env): Promise<void> {
-  console.log('Sending followup message:', { applicationId, content });
-  const response = await fetch(`https://discord.com/api/v10/webhooks/${applicationId}/${token}`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
+async function sendFollowupMessage(
+  applicationId: string,
+  token: string,
+  content: string,
+  env: Env,
+): Promise<void> {
+  console.log("Sending followup message:", { applicationId, content });
+  const response = await fetch(
+    `https://discord.com/api/v10/webhooks/${applicationId}/${token}`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ content }),
     },
-    body: JSON.stringify({ content })
-  });
+  );
 
   if (!response.ok) {
     throw new Error(`Failed to send followup message: ${response.status}`);
@@ -112,10 +127,9 @@ export default {
         return new Response('Invalid signature', { status: 401 });
       }
 
-      const interaction = JSON.parse(body) as DiscordInteraction;
+      const interaction = JSON.parse(body);
       console.log('Received interaction:', interaction);
 
-      // Pingリクエストの処理
       if (interaction.type === InteractionType.PING) {
         return new Response(JSON.stringify({
           type: InteractionResponseType.PONG
@@ -124,14 +138,19 @@ export default {
         });
       }
 
-      // コマンドの処理（type: 2はAPPLICATION_COMMANDを表す）
       if (interaction.type === InteractionType.APPLICATION_COMMAND) {
         const message = interaction.data?.options?.[0]?.value ?? '';
         console.log('Processing command with message:', message);
 
         try {
-          console.log('Dify API Key:', env.DIFY_API_KEY ? '設定されています' : '設定されていません');
-          console.log('Dify Endpoint:', env.DIFY_API_ENDPOINT);
+          if (!env.DIFY_API_ENDPOINT) {
+            throw new Error('DIFY_API_ENDPOINT is not configured');
+          }
+          if (!env.DIFY_API_KEY) {
+            throw new Error('DIFY_API_KEY is not configured');
+          }
+
+          console.log('Using Dify endpoint:', env.DIFY_API_ENDPOINT);
           
           const difyRequestBody: DifyRequestBody = {
             inputs: {},
@@ -173,11 +192,6 @@ export default {
               }
 
               const answer = await difyResponse.json() as DifyResponse;
-              console.log('Dify response metadata:', {
-                tokens: answer.metadata.usage.total_tokens,
-                cost: `${answer.metadata.usage.total_price} ${answer.metadata.usage.currency}`,
-                latency: `${answer.metadata.usage.latency}ms`
-              });
               await sendFollowupMessage(
                 interaction.application_id,
                 interaction.token,
@@ -196,13 +210,12 @@ export default {
           })());
 
           return initialResponse;
-
         } catch (error) {
           console.error('Initial response error:', error);
           return new Response(JSON.stringify({
             type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
             data: {
-              content: ERROR_MESSAGES.GENERAL_ERROR(error.message)
+              content: ERROR_MESSAGES.GENERAL_ERROR(error instanceof Error ? error.message : '不明なエラー')
             }
           }), {
             headers: { 'Content-Type': 'application/json' }
