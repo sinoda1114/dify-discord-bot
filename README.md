@@ -1,4 +1,4 @@
-# Dify Discord Bot
+# DifyとDiscord Botの連携
 Dify APIを使用したDiscord botです。このbotは、DiscordのスラッシュコマンドでDify APIと対話することができます。
 バックエンドはCloudflare Workersです。
 
