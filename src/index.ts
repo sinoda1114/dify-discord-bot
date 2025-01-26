@@ -4,6 +4,13 @@ import {
   verifyKey,
 } from "discord-interactions";
 
+/**
+ * 環境変数の型定義
+ * DISCORD_TOKEN: Discordボットのアクセストークン
+ * DISCORD_PUBLIC_KEY: Discordリクエストの署名検証用の公開鍵
+ * DIFY_API_KEY: Dify APIへのアクセスキー
+ * DIFY_API_ENDPOINT: Dify APIのエンドポイントURL
+ */
 interface Env {
   DISCORD_TOKEN: string;
   DISCORD_PUBLIC_KEY: string;
@@ -105,22 +112,34 @@ async function sendFollowupMessage(
   }
 }
 
+/**
+ * メインのリクエストハンドラー
+ * 1. Discordからのリクエスト検証
+ * 2. インタラクションタイプの判別（PING/コマンド）
+ * 3. AIへの問い合わせと応答の送信
+ * を行います
+ */
 export default {
   async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
     try {
+      // POSTリクエストのみを受け付け
       if (request.method !== 'POST') {
         return new Response('Method not allowed', { status: 405 });
       }
 
+      // Discordからのリクエスト署名を検証
+      // x-signature-ed25519とx-signature-timestampヘッダーを使用
       const signature = request.headers.get('x-signature-ed25519');
       const timestamp = request.headers.get('x-signature-timestamp');
       const body = await request.clone().text();
 
+      // 必要なヘッダーと環境変数の存在確認
       if (!signature || !timestamp || !env.DISCORD_PUBLIC_KEY) {
         console.error('Missing verification headers or DISCORD_PUBLIC_KEY');
         return new Response('Missing verification headers', { status: 401 });
       }
 
+      // 署名の暗号的検証
       const isValid = await verifyKey(body, signature, timestamp, env.DISCORD_PUBLIC_KEY);
       if (!isValid) {
         console.error('Invalid signature');
@@ -130,6 +149,7 @@ export default {
       const interaction = JSON.parse(body);
       console.log('Received interaction:', interaction);
 
+      // Discordボットの生存確認用PINGへの応答
       if (interaction.type === InteractionType.PING) {
         return new Response(JSON.stringify({
           type: InteractionResponseType.PONG
@@ -138,11 +158,14 @@ export default {
         });
       }
 
+      // スラッシュコマンドの処理
       if (interaction.type === InteractionType.APPLICATION_COMMAND) {
+        // コマンドのメッセージ内容を取得
         const message = interaction.data?.options?.[0]?.value ?? '';
         console.log('Processing command with message:', message);
 
         try {
+          // Dify API設定の検証
           if (!env.DIFY_API_ENDPOINT) {
             throw new Error('DIFY_API_ENDPOINT is not configured');
           }
@@ -152,6 +175,8 @@ export default {
 
           console.log('Using Dify endpoint:', env.DIFY_API_ENDPOINT);
           
+          // Dify APIリクエストの準備
+          // ユーザーIDとメッセージを含むリクエストボディを構築
           const difyRequestBody: DifyRequestBody = {
             inputs: {},
             query: message,
@@ -161,7 +186,8 @@ export default {
             stream: false
           };
 
-          // 初期レスポンスを送信
+          // Discord「考え中...」の初期レスポンスを送信
+          // これによりDiscordの3秒タイムアウトを回避
           const initialResponse = new Response(JSON.stringify({
             type: InteractionResponseType.DEFERRED_CHANNEL_MESSAGE_WITH_SOURCE,
             data: {
@@ -172,8 +198,11 @@ export default {
           });
 
           // バックグラウンドでDify APIリクエストを処理
+          // ctx.waitUntilを使用してレスポンス送信後も処理を継続
           ctx.waitUntil((async () => {
             try {
+              // Dify APIへリクエストを送信
+              // タイムアウト制限付きで実行
               const difyResponse = await fetch(env.DIFY_API_ENDPOINT, {
                 method: 'POST',
                 headers: {
@@ -184,6 +213,7 @@ export default {
                 signal: AbortSignal.timeout(DIFY_TIMEOUT_MS)
               });
 
+              // Dify APIレスポンスのエラーチェック
               if (!difyResponse.ok) {
                 throw new DifyAPIError(
                   difyResponse.status,
@@ -191,6 +221,8 @@ export default {
                 );
               }
 
+              // AIの応答をDiscordに送信
+              // メンション付きで最大文字数制限内に収める
               const answer = await difyResponse.json() as DifyResponse;
               await sendFollowupMessage(
                 interaction.application_id,
@@ -199,6 +231,7 @@ export default {
                 env
               );
             } catch (error) {
+              // Dify APIエラー時のフォールバック応答
               console.error('Dify API error:', error);
               await sendFollowupMessage(
                 interaction.application_id,
@@ -211,6 +244,7 @@ export default {
 
           return initialResponse;
         } catch (error) {
+          // 初期レスポンス生成時のエラーハンドリング
           console.error('Initial response error:', error);
           return new Response(JSON.stringify({
             type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
@@ -223,8 +257,10 @@ export default {
         }
       }
 
+      // 未知のインタラクションタイプの場合のエラーレスポンス
       return new Response('Unknown interaction type', { status: 400 });
     } catch (error) {
+      // 予期せぬエラーのグローバルハンドリング
       console.error('Worker error:', error);
       return new Response('Internal Server Error', { status: 500 });
     }

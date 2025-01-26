@@ -11,8 +11,8 @@
     // "disableReferencedProjectLoad": true,             /* Reduce the number of projects loaded automatically by TypeScript. */
 
     /* Language and Environment */
-    "target": "ES2021",                                  /* Set the JavaScript language version for emitted JavaScript and include compatible library declarations. */
-    "lib": ["ES2021"],                                        /* Specify a set of bundled library declaration files that describe the target runtime environment. */
+    "target": "ES2021",                                  /* 出力するJavaScriptのバージョンを指定。Cloudflare Workersの要件に合わせてES2021を使用 */
+    "lib": ["ES2021"],                                   /* コンパイル時に使用する組み込みのライブラリを指定。Workersの環境に合わせてES2021を使用 */
     // "jsx": "preserve",                                /* Specify what JSX code is generated. */
     // "experimentalDecorators": true,                   /* Enable experimental support for legacy experimental decorators. */
     // "emitDecoratorMetadata": true,                    /* Emit design-type metadata for decorated declarations in source files. */
@@ -25,14 +25,14 @@
     // "moduleDetection": "auto",                        /* Control what method is used to detect module-format JS files. */
 
     /* Modules */
-    "module": "ES2022",                                /* Specify what module code is generated. */
-    "rootDir": "./",                                  /* Specify the root folder within your source files. */
-    "moduleResolution": "node",                     /* Specify how TypeScript looks up a file from a given module specifier. */
+    "module": "ES2022",                                  /* モジュールシステムの形式を指定。最新のES Modulesを使用 */
+    "rootDir": "./",                                     /* ソースファイルのルートディレクトリを指定 */
+    "moduleResolution": "node",                          /* モジュール解決の方法を指定。Node.jsの方式を使用 */
     // "baseUrl": "./",                                  /* Specify the base directory to resolve non-relative module names. */
     // "paths": {},                                      /* Specify a set of entries that re-map imports to additional lookup locations. */
     // "rootDirs": [],                                   /* Allow multiple folders to be treated as one when resolving modules. */
     // "typeRoots": [],                                  /* Specify multiple folders that act like './node_modules/@types'. */
-    "types": ["@cloudflare/workers-types"],                                      /* Specify type package names to be included without being referenced in a source file. */
+    "types": ["@cloudflare/workers-types"],             /* 追加で含める型定義ファイルを指定。Cloudflare Workers用の型定義を含める */
     // "allowUmdGlobalAccess": true,                     /* Allow accessing UMD globals from modules. */
     // "moduleSuffixes": [],                             /* List of file name suffixes to search when resolving a module. */
     // "allowImportingTsExtensions": true,               /* Allow imports to include TypeScript file extensions. Requires '--moduleResolution bundler' and either '--noEmit' or '--emitDeclarationOnly' to be set. */
@@ -56,7 +56,7 @@
     // "emitDeclarationOnly": true,                      /* Only output d.ts files and not JavaScript files. */
     // "sourceMap": true,                                /* Create source map files for emitted JavaScript files. */
     // "inlineSourceMap": true,                          /* Include sourcemap files inside the emitted JavaScript. */
-    "noEmit": true,                                   /* Disable emitting files from a compilation. */
+    "noEmit": true,                                     /* JavaScriptファイルを出力しない。Workersではwebpackが変換を行うため */
     // "outFile": "./",                                  /* Specify a file that bundles all outputs into one JavaScript file. If 'declaration' is true, also designates a file that bundles all .d.ts output. */
     // "outDir": "./",                                   /* Specify an output folder for all emitted files. */
     // "removeComments": true,                           /* Disable emitting comments. */
@@ -78,12 +78,12 @@
     // "verbatimModuleSyntax": true,                     /* Do not transform or elide any imports or exports not marked as type-only, ensuring they are written in the output file's format based on the 'module' setting. */
     // "isolatedDeclarations": true,                     /* Require sufficient annotation on exports so other tools can trivially generate declaration files. */
     // "allowSyntheticDefaultImports": true,             /* Allow 'import x from y' when a module doesn't have a default export. */
-    "esModuleInterop": true,                             /* Emit additional JavaScript to ease support for importing CommonJS modules. This enables 'allowSyntheticDefaultImports' for type compatibility. */
+    "esModuleInterop": true,                             /* CommonJSモジュールをESモジュールとしてインポートできるようにする */
     // "preserveSymlinks": true,                         /* Disable resolving symlinks to their realpath. This correlates to the same flag in node. */
-    "forceConsistentCasingInFileNames": true,            /* Ensure that casing is correct in imports. */
+    "forceConsistentCasingInFileNames": true,            /* ファイル名の大文字小文字の一貫性をチェック */
 
     /* Type Checking */
-    "strict": true,                                      /* Enable all strict type-checking options. */
+    "strict": true,                                     /* すべての厳密な型チェックオプションを有効化 */
     // "noImplicitAny": true,                            /* Enable error reporting for expressions and declarations with an implied 'any' type. */
     // "strictNullChecks": true,                         /* When type checking, take into account 'null' and 'undefined'. */
     // "strictFunctionTypes": true,                      /* When assigning functions, check to ensure parameters and the return values are subtype-compatible. */
@@ -106,7 +106,7 @@
 
     /* Completeness */
     // "skipDefaultLibCheck": true,                      /* Skip type checking .d.ts files that are included with TypeScript. */
-    "skipLibCheck": true                                 /* Skip type checking all .d.ts files. */
+    "skipLibCheck": true                                 /* 外部ライブラリの型チェックをスキップしてビルド時間を短縮 */
   },
   "include": ["src/**/*"],
   "exclude": ["node_modules"]
