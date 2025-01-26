@@ -56,12 +56,6 @@ npx wrangler secret put DIFY_API_KEY
 npx wrangler deploy
 ```
 
-### 開発環境
-開発時はワーカーのログを確認できます：
-```bash
-wrangler tail
-```
-
 ## 使用方法
 1. Discordサーバーにボットを追加
 2. `/chat` コマンドを使用してDifyと対話
