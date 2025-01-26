@@ -11,7 +11,6 @@ Dify APIを使用したDiscord botです。このbotは、Discordのスラッシ
 ### 必要条件
 - Node.js (v16以上)
 - npm
-- Cloudflareアカウント
 - Cloudflare Workers
 - Discordボットトークン
 - Dify APIキー
@@ -57,10 +56,10 @@ npx wrangler secret put DIFY_API_KEY
 npx wrangler deploy
 ```
 
-## 開発
-ローカルで開発する場合：
+### 開発環境
+開発時はワーカーのログを確認できます：
 ```bash
-npm run dev
+wrangler tail
 ```
 
 ## 使用方法
@@ -72,7 +71,7 @@ npm run dev
 - APIキーとエンドポイントが正しく設定されているか確認
 - Discord Developer PortalでInteractions Endpoint URLが正しく設定されているか確認
 
-## 謝辞
+---
 - [Discord API](https://discord.com/developers/docs/intro)
 - [Dify](https://dify.ai/)
 - [Cloudflare Workers](https://workers.cloudflare.com/)
